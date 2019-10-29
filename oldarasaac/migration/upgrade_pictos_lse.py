@@ -3,13 +3,13 @@
 import MySQLdb
 import re
 import json
-import logging
 from pymongo import MongoClient
 from bson.objectid import ObjectId
 from bson.json_util import dumps
 import datetime
 import time
 import os
+import logging
 
 from dotenv import load_dotenv
 
@@ -28,7 +28,7 @@ from dotenv import load_dotenv
 from pathlib import Path  # python3 only
 env_path = Path('.') / '.env'
 print(open(env_path).read())
-load_dotenv(dotenv_path=env_path, verbose=True)
+load_dotenv(dotenv_path=env_path)
 
 MYSQL_DATABASE = os.getenv('MYSQL_DATABASE')
 MONGO_DATABASE = os.getenv('MONGO_DATABASE')
@@ -53,20 +53,18 @@ arasaac_db = client.arasaac
 col_pictos = arasaac_db.pictos_es
 
 cambios = []
-
-changed = []
+logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.INFO)
+logging.info('Iniciando inserción de LSE')
 for i in col_pictos.find():
     for k in i.get('keywords'):
         idKeyword = k.get('idKeyword')
         lse = dict_kw.get(int(idKeyword))
         if lse:
             i["idLSE"] = lse
-            if idKeyword not in changed:
-                col_pictos.update_many({'keywords.idKeyword': idKeyword}, 
-                    {"$set": {'keywords.$.idLSE': lse}})
-                changed.append(idKeyword)
+            col_pictos.update_many({'keywords.idKeyword': idKeyword}, 
+                {"$set": {'keywords.$.idLSE': lse}})
     cambios.append(i)
-
+logging.info('FIN inserción de LSE')
 open('images_es.json', 'w').write(dumps(cambios))
 
 

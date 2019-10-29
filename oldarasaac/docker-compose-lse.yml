@@ -1,0 +1,56 @@
+version: "3"
+
+services:
+  migration:
+    hostname: migration
+    container_name: migration
+    build:
+      context: ./migration
+      dockerfile: Dockerfile-lse
+    working_dir: /app
+    #command: tail -f /dev/null
+    command: python upgrade_pictos_lse.py
+    env_file:
+      - .env
+    depends_on:
+      - db
+      - mongodb
+    volumes:
+      - "./data:/app/data"
+  db:
+    hostname: db
+    image: mysql:5.5
+    container_name: db
+    volumes:
+      - ./bbdd:/var/lib/mysql
+      - ./dump:/docker-entrypoint-initdb.d
+    env_file:
+      - .env
+    #ports:
+    #  - 3306:3306
+    expose:
+      - 3306
+
+  phpmyadmin:
+    hostname: phpmyadmin
+    image: phpmyadmin/phpmyadmin
+    container_name: phpmyadmin
+    environment:
+      VIRTUAL_HOST: "phpmyadmin.arasaac.org,www.phpmyadmin.arasaac.org"
+    env_file:
+      - .env
+    depends_on:
+      - db
+    ports:
+      - 8088:80
+    
+  mongodb:
+    hostname: mongodb
+    container_name: mongodb
+    image: mongo:3.6
+    volumes:
+      - ./mongodb/dump:/docker-entrypoint-initdb.d
+      - ./mongodb/dbdata:/data/db
+    #ports:
+    #  - 27017:27017
+  
