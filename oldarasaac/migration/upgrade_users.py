@@ -37,6 +37,4 @@ logging.info('Actualizando usuarios')
 
 users = arasaac_db.users
 
-for u in users.find():
-    users.update_one({'_id': u.get('_id')}, 
-                {"$set": {'role': 'user', 'locale': 'es', 'suscription': True}})
+users.update_many({}, {'$set': {'role':"user", 'suscription': True, 'locale': "es"}})
